@@ -13,14 +13,8 @@ pipeline {
         }
         stage('Run dotnet tests') {
             steps {
-                bat 'dotnet test TestProject1/TestProject1.csproj --no-build --verbosity normal'
+                bat 'dotnet test'
             }
-            steps {
-                  bat 'dotnet test TestProject2/TestProject2.csproj --no-build --verbosity normal'
-              }
-            steps {
-                  bat 'dotnet test TestProject3/TestProject3.csproj --no-build --verbosity normal'
-              }
         }
     }
 }
