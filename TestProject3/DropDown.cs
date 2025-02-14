@@ -1,9 +1,7 @@
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium;
 using System.Collections.ObjectModel;
-using static System.Net.Mime.MediaTypeNames;
-using System.Xml.Linq;
 
 namespace TestProject3
 {
@@ -16,54 +14,25 @@ namespace TestProject3
         public void SetUp()
         {
             ChromeOptions options = new ChromeOptions();
-            options.AddArguments("headless");
-            options.AddArguments("no-sandbox");
-            options.AddArguments("disable-dev-shm-usage");
-            options.AddArguments("disable-gpu");
-            options.AddArguments("window-size=1920x1080");
-            options.AddArguments("disable-extensions");
-            options.AddArguments("remote-debugging-port-9222");
+            options.AddArguments("headless", "no-sandbox", "disable-dev-shm-usage", "disable-gpu",
+                                 "window-size=1920x1080", "disable-extensions", "remote-debugging-port-9222");
 
-            // Create object of ChromeDriver
             driver = new ChromeDriver(options);
-
-            // Add implicit wait
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
         }
 
         [Test]
         public void TestSelectFromDropDown()
         {
-            // Launch Chrome browser with the given URL
             driver.Url = "http://practice.bpbonline.com/";
 
-            //Create a text file to save manufacturer information
             string path = Directory.GetCurrentDirectory() + "/manufacturer.txt";
+            if (File.Exists(path)) File.Delete(path);
 
-            // If the file exists in the location, delete it
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-
-            //Locate the dropdown element by its name attribute
             SelectElement manufDropdown = new SelectElement(driver.FindElement(By.Name("manufacturers_id")));
-
-            // Fetch all the options from drop down
             IList<IWebElement> allManufacturers = manufDropdown.Options;
-
-            // Create a string list to fill in all manufacturers
-            List<string> manufNames = new List<string>();
-
-            // Fetch all manufacturer names in a List
-            foreach (IWebElement manufName in allManufacturers)
-            {
-                manufNames.Add(manufName.Text);
-            }
-            // Remove the "Please Select" option from the list
+            List<string> manufNames = allManufacturers.Select(m => m.Text).ToList();
             manufNames.RemoveAt(0);
-
-            // Iterate through the manufacturers to fetch the product information related to it
 
             foreach (string mname in manufNames)
             {
@@ -76,24 +45,23 @@ namespace TestProject3
                 }
                 else
                 {
-                    // Create the table element
                     IWebElement productTable = driver.FindElement(By.ClassName("productListingData"));
-
-                    // Fetch all table rows
                     File.AppendAllText(path, $"\n\nThe manufacturer {mname} products are listed--\n");
-                    ReadOnlyCollection<IWebElement> rows = productTable.FindElements(By.XPath("//tbody/tr"));
 
-                    // Print the product information in the file
-                    foreach (IWebElement row in rows)
-                    {
-                        File.AppendAllText(path, row.Text + "\n");
-                    }
+                    ReadOnlyCollection<IWebElement> rows = productTable.FindElements(By.XPath("//tbody/tr"));
+                    foreach (IWebElement row in rows) File.AppendAllText(path, row.Text + "\n");
                 }
             }
+        }
 
-            // Quit the driver
-            driver.Quit();
-            driver.Dispose();
+        [TearDown]
+        public void TearDown()
+        {
+            if (driver != null)
+            {
+                driver.Quit();
+                driver.Dispose();
+            }
         }
     }
 }
